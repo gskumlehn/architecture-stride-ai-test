@@ -1,0 +1,98 @@
+{
+  "threat_model": [
+    {
+      "Threat Type": "Spoofing",
+      "Scenario": "A malicious actor forges the IP address or TLS certificate of one of the internal services (e.g., the 'Order Service' or object storage service) to impersonate a legitimate entity and trick the API (FastAPI) into processing fake requests.",
+      "Potential Impact": "Data breaches, execution of unauthorized actions on behalf of other services, and compromise of the system's integrity."
+    },
+    {
+      "Threat Type": "Spoofing",
+      "Scenario": "An attacker impersonates a legitimate user (browser) to send malicious requests to the system, bypassing initial access controls and authentication if they are based on easily forgeable data.",
+      "Potential Impact": "Unauthorized access to data, misuse of application functionalities, and potential compromise of legitimate user accounts."
+    },
+    {
+      "Threat Type": "Spoofing",
+      "Scenario": "An attacker forges the DNS server to redirect legitimate user traffic to a malicious server they control, which simulates the application's interface.",
+      "Potential Impact": "Theft of login credentials and other sensitive information, phishing, and Man-in-the-Middle attacks."
+    },
+    {
+      "Threat Type": "Tampering",
+      "Scenario": "Data in transit between the API (FastAPI) and the 'Order Service' or 'Object Storage' is intercepted and altered by an attacker, modifying information such as order details or file data before it is processed.",
+      "Potential Impact": "Data inconsistency, incorrect order processing, and corruption of stored information, leading to financial or operational losses."
+    },
+    {
+      "Threat Type": "Tampering",
+      "Scenario": "SQL Injection or Command Injection attacks are carried out through the API (FastAPI) to manipulate or alter data directly in the 'Object Storage' or underlying databases, if the interaction is not properly sanitized.",
+      "Potential Impact": "Unauthorized modification of data, deletion of critical information, and potential complete control over the application's database."
+    },
+    {
+      "Threat Type": "Tampering",
+      "Scenario": "An attacker compromises the CDN/Load Balancer, altering the static content served to users (e.g., JavaScript code) to include malicious scripts, resulting in reflected or persistent Cross-Site Scripting (XSS) attacks.",
+      "Potential Impact": "Theft of session cookies and tokens, redirection of users to malicious websites, and execution of malicious actions in users' browsers."
+    },
+    {
+      "Threat Type": "Repudiation",
+      "Scenario": "A legitimate user or an internal service denies having performed a specific action (e.g., creating an order) because the application does not maintain robust audit logs or digital signatures that can prove the request's origin.",
+      "Potential Impact": "Difficulty in tracing malicious activities, inability to hold entities accountable for fraudulent actions, and complications in internal audits and security investigations."
+    },
+    {
+      "Threat Type": "Repudiation",
+      "Scenario": "A system administrator makes a critical change to data in 'Object Storage' and denies the action, as system logs do not capture the exact identity and action performed by the elevated user.",
+      "Potential Impact": "Failures in accountability, difficulty in auditing administrative changes, and inability to accurately revert malicious or erroneous actions."
+    },
+    {
+      "Threat Type": "Information Disclosure",
+      "Scenario": "The application exposes detailed error messages containing sensitive information, such as database table names, software versions, or internal file paths, which can be used by an attacker to map the system's architecture.",
+      "Potential Impact": "Assistance for future attacks, such as targeted SQL Injection and exploitation of known software vulnerabilities."
+    },
+    {
+      "Threat Type": "Information Disclosure",
+      "Scenario": "Communication between the API (FastAPI) and backend services ('Order Service', 'Object Storage') does not use strong encryption at all points (despite mTLS and TLS being indicated), allowing an attacker on the internal or external network to intercept sensitive data in transit.",
+      "Potential Impact": "Exposure of confidential user data, order information, and system secrets to unauthorized parties."
+    },
+    {
+      "Threat Type": "Information Disclosure",
+      "Scenario": "Access credentials for cache (Redis) and object storage services are poorly managed, such as being hardcoded in source code or unprotected configuration files, allowing an attacker who gains access to the server to obtain them.",
+      "Potential Impact": "Unrestricted access to stored sensitive data and potential compromise of multiple services using the same credentials."
+    },
+    {
+      "Threat Type": "Denial of Service",
+      "Scenario": "An attacker overloads the CDN/Load Balancer with a large volume of traffic, resulting in a Distributed Denial of Service (DDoS) attack that prevents legitimate users from accessing the application.",
+      "Potential Impact": "Service unavailability, loss of revenue, and damage to the company's reputation."
+    },
+    {
+      "Threat Type": "Denial of Service",
+      "Scenario": "An attacker sends malicious requests to the API (FastAPI) that cause high consumption of server resources, such as excessive CPU or memory usage, resulting in the API slowing down or crashing completely.",
+      "Potential Impact": "Service interruption, failure to process orders, and impact on user experience."
+    },
+    {
+      "Threat Type": "Denial of Service",
+      "Scenario": "An attacker exploits a vulnerability in 'Redis Cache' to exhaust its memory, which causes an increase in latency and overloads 'Object Storage' and the 'Order Service', as requests are no longer served from the cache.",
+      "Potential Impact": "Significant degradation of system performance and failure of critical operations."
+    },
+    {
+      "Threat Type": "Elevation of Privilege",
+      "Scenario": "A malicious user exploits a flaw in the API (FastAPI) to gain access to restricted endpoints or functionalities, such as creating new users with administrator privileges or modifying other users' orders.",
+      "Potential Impact": "Access to confidential data, control over the application, and execution of administrative actions without authorization."
+    },
+    {
+      "Threat Type": "Elevation of Privilege",
+      "Scenario": "An attacker compromises the 'Order Service' by exploiting a vulnerability and then uses the obtained privileges to access other internal services or databases, such as 'Object Storage' or 'Redis Cache', using the implicit trust between services.",
+      "Potential Impact": "Complete breach of the internal architecture, massive data theft, and control over the system as a whole."
+    },
+    {
+      "Threat Type": "Elevation of Privilege",
+      "Scenario": "The application uses the same service account or shared credentials for the API and the 'Order Service', allowing an attacker who compromises one service to have automatic and unrestricted access to all others.",
+      "Potential Impact": "Rapid expansion of the attack, difficulty in containing a breach, and a widespread impact on the system."
+    }
+  ],
+  "improvement_suggestions": [
+    "Implement strong authentication and role-based access control (RBAC) in the API (FastAPI) for all endpoints, ensuring that only authorized users and services can perform specific actions.",
+    "Enforce the use of mTLS between all internal services ('API' to 'Order Service', 'API' to 'Object Storage'), ensuring that communication between them is mutually authenticated and encrypted.",
+    "Add a robust logging and auditing system that records all critical actions and transactions, with timestamps and user identifiers, to enable traceability and accountability.",
+    "Perform rigorous validation and sanitization of all user inputs in the API (FastAPI) to prevent injection attacks such as SQL Injection and Command Injection.",
+    "Implement a WAF (Web Application Firewall) to protect the API against DDoS attacks, Cross-Site Scripting (XSS), and other common web application vulnerabilities.",
+    "Use a centralized secret manager (e.g., Vault, AWS Secrets Manager) to store sensitive credentials and API keys, eliminating the need to hardcode them in configuration files or the source code.",
+    "Configure the 'Order Service' and 'API' with the principle of least privilege, ensuring that each service has only the necessary permissions to perform its designated functions, without excessive privileges."
+  ]
+}

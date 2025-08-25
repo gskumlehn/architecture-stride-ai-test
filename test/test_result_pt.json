@@ -1,0 +1,98 @@
+{
+  "threat_model": [
+    {
+      "Threat Type": "Spoofing",
+      "Scenario": "Um ator malicioso falsifica o endereço IP ou o certificado TLS de um dos serviços internos (por exemplo, o Serviço de Pedidos ou o serviço de armazenamento) para se passar por uma entidade legítima e enganar o API (FastAPI) para processar solicitações falsas.",
+      "Potential Impact": "Violação de dados, execução de ações não autorizadas em nome de outros serviços, e comprometimento da integridade do sistema."
+    },
+    {
+      "Threat Type": "Spoofing",
+      "Scenario": "Um atacante se passa por um usuário legítimo (navegador) para enviar solicitações maliciosas ao sistema, bypassando controles de acesso e autenticação iniciais, se eles forem baseados apenas em dados facilmente falsificáveis.",
+      "Potential Impact": "Acesso não autorizado a dados, uso indevido de funcionalidades da aplicação e potencial comprometimento de contas de usuários legítimos."
+    },
+    {
+      "Threat Type": "Spoofing",
+      "Scenario": "Um atacante falsifica o servidor DNS para direcionar o tráfego de usuários legítimos para um servidor malicioso controlado pelo atacante, que simula a interface da aplicação.",
+      "Potential Impact": "Roubo de credenciais de login e outras informações sensíveis, phishing e ataques Man-in-the-Middle."
+    },
+    {
+      "Threat Type": "Tampering",
+      "Scenario": "Dados em trânsito entre o API (FastAPI) e o 'Serviço de Pedidos' ou o 'Armazenamento de Objetos' são interceptados e alterados por um atacante, modificando informações como detalhes de pedidos ou dados de arquivos antes de serem processados.",
+      "Potential Impact": "Inconsistência de dados, processamento de pedidos incorretos, e corrupção de informações armazenadas, levando a perdas financeiras ou operacionais."
+    },
+    {
+      "Threat Type": "Tampering",
+      "Scenario": "Ataques de SQL Injection ou Command Injection são realizados através da API (FastAPI) para manipular ou alterar dados diretamente no 'Armazenamento de Objetos' ou nas bases de dados subjacentes, se a interação não for sanitizada adequadamente.",
+      "Potential Impact": "Modificação não autorizada de dados, exclusão de informações críticas, e potencial controle total sobre o banco de dados da aplicação."
+    },
+    {
+      "Threat Type": "Tampering",
+      "Scenario": "Um atacante compromete a CDN/Load Balancer, alterando o conteúdo estático servido aos usuários (e.g., código JavaScript) para incluir scripts maliciosos, resultando em ataques de Cross-Site Scripting (XSS) refletido ou persistente.",
+      "Potential Impact": "Roubo de cookies e tokens de sessão, redirecionamento de usuários para sites maliciosos e execução de ações maliciosas nos navegadores dos usuários."
+    },
+    {
+      "Threat Type": "Repudiation",
+      "Scenario": "Um usuário legítimo ou um serviço interno nega ter realizado uma ação específica (e.g., a criação de um pedido), pois a aplicação não mantém logs de auditoria robustos ou assinaturas digitais que possam provar a origem da solicitação.",
+      "Potential Impact": "Dificuldade em rastrear atividades maliciosas, impossibilidade de responsabilizar entidades por ações fraudulentas e complicações em auditorias internas e investigações de segurança."
+    },
+    {
+      "Threat Type": "Repudiation",
+      "Scenario": "Um administrador do sistema realiza uma alteração crítica nos dados do 'Armazenamento de Objetos' e nega a ação, pois os logs do sistema não capturam a identidade exata e a ação realizada pelo usuário com privilégios elevados.",
+      "Potential Impact": "Falhas na responsabilidade, dificuldade em auditar mudanças administrativas e incapacidade de reverter ações maliciosas ou errôneas com precisão."
+    },
+    {
+      "Threat Type": "Information Disclosure",
+      "Scenario": "A aplicação expõe mensagens de erro detalhadas contendo informações sensíveis, como nomes de tabelas de banco de dados, versões de software, ou caminhos de arquivos internos, que podem ser usados por um atacante para mapear a arquitetura do sistema.",
+      "Potential Impact": "Auxílio a ataques futuros, como SQL Injection direcionado e exploração de vulnerabilidades de software conhecidas."
+    },
+    {
+      "Threat Type": "Information Disclosure",
+      "Scenario": "A comunicação entre a API (FastAPI) e os serviços de backend ('Serviço de Pedidos', 'Armazenamento de Objetos') não usa criptografia forte em todos os pontos (apesar de haver TLS e mTLS indicados), permitindo que um atacante na rede interna ou externa intercepte dados sensíveis em trânsito.",
+      "Potential Impact": "Exposição de dados confidenciais de usuários, informações de pedidos e segredos de sistema a partes não autorizadas."
+    },
+    {
+      "Threat Type": "Information Disclosure",
+      "Scenario": "As credenciais de acesso aos serviços de cache (Redis) e armazenamento de objetos são mal gerenciadas, como estarem codificadas no código-fonte ou em arquivos de configuração não protegidos, permitindo que um atacante que consiga acesso ao servidor as obtenha.",
+      "Potential Impact": "Acesso irrestrito a dados sensíveis armazenados e potencial comprometimento de múltiplos serviços usando as mesmas credenciais."
+    },
+    {
+      "Threat Type": "Denial of Service",
+      "Scenario": "Um atacante sobrecarrega o CDN/Load Balancer com um grande volume de tráfego, resultando em um ataque de Distributed Denial of Service (DDoS) que impede que usuários legítimos acessem a aplicação.",
+      "Potential Impact": "Indisponibilidade do serviço, perda de receita, e dano à reputação da empresa."
+    },
+    {
+      "Threat Type": "Denial of Service",
+      "Scenario": "Um atacante envia requisições maliciosas à API (FastAPI) que causam um alto consumo de recursos do servidor, como uso excessivo de CPU ou memória, resultando em lentidão ou falha completa da API.",
+      "Potential Impact": "Interrupção do serviço, falha no processamento de pedidos e impacto na experiência do usuário."
+    },
+    {
+      "Threat Type": "Denial of Service",
+      "Scenario": "Um atacante explora uma vulnerabilidade na 'Cache Redis' para esgotar sua memória, o que causa um aumento na latência e sobrecarrega o 'Armazenamento de Objetos' e o 'Serviço de Pedidos', pois as requisições não são mais servidas pelo cache.",
+      "Potential Impact": "Degradação significativa do desempenho do sistema e falha em operações críticas."
+    },
+    {
+      "Threat Type": "Elevation of Privilege",
+      "Scenario": "Um usuário malicioso explora uma falha na API (FastAPI) para obter acesso a endpoints ou funcionalidades restritas, como a criação de novos usuários com privilégios de administrador ou a modificação de pedidos de outros usuários.",
+      "Potential Impact": "Acesso a dados confidenciais, controle sobre a aplicação e execução de ações administrativas sem autorização."
+    },
+    {
+      "Threat Type": "Elevation of Privilege",
+      "Scenario": "Um atacante compromete a 'Serviço de Pedidos' explorando uma vulnerabilidade e, em seguida, usa os privilégios obtidos para acessar outros serviços ou bancos de dados internos, como o 'Armazenamento de Objetos' ou 'Cache Redis', usando o trust implícito entre serviços.",
+      "Potential Impact": "Violação completa da arquitetura interna, roubo de dados massivo e controle sobre o sistema como um todo."
+    },
+    {
+      "Threat Type": "Elevation of Privilege",
+      "Scenario": "A aplicação usa a mesma conta de serviço ou credenciais compartilhadas para a API e o 'Serviço de Pedidos', permitindo que um atacante que comprometa um serviço tenha acesso automático e sem restrições a todos os outros.",
+      "Potential Impact": "Expansão rápida do ataque, dificuldade em conter uma violação e impacto generalizado no sistema."
+    }
+  ],
+  "improvement_suggestions": [
+    "Implementar autenticação forte e controle de acesso baseado em papéis (RBAC) na API (FastAPI) para todos os endpoints, garantindo que apenas usuários e serviços autorizados possam realizar ações específicas.",
+    "Reforçar o uso de mTLS entre todos os serviços internos ('API' para 'Serviço de Pedidos', 'API' para 'Armazenamento de Objetos'), garantindo que a comunicação entre eles seja autenticada e criptografada mutuamente.",
+    "Adicionar um sistema robusto de logging e auditoria que registre todas as ações críticas e transações, com carimbos de data e hora e identificadores de usuário, para permitir a rastreabilidade e a responsabilização.",
+    "Realizar validação e sanitização rigorosas de todas as entradas de usuário na API (FastAPI) para prevenir ataques de injeção como SQL Injection e Command Injection.",
+    "Implementar um WAF (Web Application Firewall) para proteger a API contra ataques de DDoS, Cross-Site Scripting (XSS) e outras vulnerabilidades comuns de aplicações web.",
+    "Utilizar um gerenciador de segredos centralizado (e.g., Vault, AWS Secrets Manager) para armazenar credenciais sensíveis e chaves de API, eliminando a necessidade de codificá-las em arquivos de configuração ou no código-fonte.",
+    "Configurar o 'Serviço de Pedidos' e a 'API' com o princípio do privilégio mínimo, garantindo que cada serviço tenha apenas as permissões necessárias para realizar suas funções designadas, sem privilégios excessivos."
+  ]
+}
