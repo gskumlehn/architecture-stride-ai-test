@@ -5,6 +5,7 @@ from fastapi import FastAPI, UploadFile, Form, File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+# Vertex AI (GCP)
 import vertexai
 from vertexai.generative_models import GenerativeModel, Part, GenerationConfig
 
@@ -30,9 +31,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---- Prompt templates (PT and EN). Best way to select language: pass form field `prompt_language` with "pt" or "en". ----
+# ---- Prompt templates (PT and EN). Select via `prompt_language` = "pt" | "en" ----
 PT_TEMPLATE = """Aja como um especialista em cibersegurança com mais de 20 anos de experiência,
-usando a metodologia STRIDE para produzir um modelo de ameaças para a aplicação e a ARQUITETURA DA IMAGEM ANEXA.
+usando a metodologia STRIDE para produzir um modelo de ameaças para a aplicação e para a ARQUITETURA NA IMAGEM ANEXA.
 
 Regras de saída:
 - Responda SOMENTE com JSON válido (sem markdown, sem texto extra).
@@ -41,11 +42,11 @@ Regras de saída:
 - Liste 3–4 ameaças por categoria STRIDE, se aplicável, com cenários plausíveis no contexto fornecido.
 
 Contexto:
-TIPO_DE_APLICACAO: {tipo_aplicacao}
-METODOS_DE_AUTENTICACAO: {autenticacao}
-EXPOSTA_NA_INTERNET: {acesso_internet}
-DADOS_SENSIVEIS: {dados_sensiveis}
-RESUMO_DESCRICAO: {descricao_aplicacao}
+TIPO_DE_APLICACAO: {application_type}
+METODOS_DE_AUTENTICACAO: {authentication_methods}
+EXPOSTA_NA_INTERNET: {internet_exposed}
+DADOS_SENSIVEIS: {sensitive_data}
+RESUMO_DESCRICAO: {application_description}
 
 Saída esperada (SOMENTE JSON):
 {{
@@ -67,11 +68,11 @@ Output rules:
 - List 3–4 threats per STRIDE category, if applicable, with plausible scenarios in the provided context.
 
 Context:
-APPLICATION_TYPE: {tipo_aplicacao}
-AUTHENTICATION_METHODS: {autenticacao}
-INTERNET_EXPOSED: {acesso_internet}
-SENSITIVE_DATA: {dados_sensiveis}
-SUMMARY_DESCRIPTION: {descricao_aplicacao}
+APPLICATION_TYPE: {application_type}
+AUTHENTICATION_METHODS: {authentication_methods}
+INTERNET_EXPOSED: {internet_exposed}
+SENSITIVE_DATA: {sensitive_data}
+SUMMARY_DESCRIPTION: {application_description}
 
 Expected output (JSON ONLY):
 {{
@@ -84,62 +85,62 @@ Expected output (JSON ONLY):
 }}"""
 
 def create_threat_model_prompt(
-    tipo_aplicacao: str,
-    autenticacao: str,
-    acesso_internet: str,
-    dados_sensiveis: str,
-    descricao_aplicacao: str,
-    prompt_language: str = "pt",
+    application_type: str,
+    authentication_methods: str,
+    internet_exposed: str,
+    sensitive_data: str,
+    application_description: str,
+    prompt_language: str = "en",
 ) -> str:
     """
     Build the STRIDE prompt in the selected language ("pt" or "en").
-    Best way to choose: pass form field `prompt_language` with value "pt" or "en".
+    Choose language via form field `prompt_language`.
     """
-    lang = (prompt_language or "pt").strip().lower()
+    lang = (prompt_language or "en").strip().lower()
     template = EN_TEMPLATE if lang.startswith("en") else PT_TEMPLATE
     return template.format(
-        tipo_aplicacao=tipo_aplicacao,
-        autenticacao=autenticacao,
-        acesso_internet=acesso_internet,
-        dados_sensiveis=dados_sensiveis,
-        descricao_aplicacao=descricao_aplicacao,
+        application_type=application_type,
+        authentication_methods=authentication_methods,
+        internet_exposed=internet_exposed,
+        sensitive_data=sensitive_data,
+        application_description=application_description,
     )
 
-@app.post("/analisar_ameacas")
-async def analyze_threats(  # function name in English; route kept for compatibility
-    imagem: UploadFile = File(...),
-    tipo_aplicacao: str = Form(...),
-    autenticacao: str = Form(...),
-    acesso_internet: str = Form(...),
-    dados_sensiveis: str = Form(...),
-    descricao_aplicacao: str = Form(...),
-    prompt_language: str = Form("pt"),  # "pt" or "en"
+@app.post("/analyze_threats")
+async def analyze_threats(
+    image: UploadFile = File(...),
+    application_type: str = Form(...),
+    authentication_methods: str = Form(...),
+    internet_exposed: str = Form(...),
+    sensitive_data: str = Form(...),
+    application_description: str = Form(...),
+    prompt_language: str = Form("en"),  # "en" or "pt"
 ):
     """
     FastAPI handler that:
-    - Builds a PT/EN prompt for STRIDE threat modeling
-    - Sends multimodal (text + image) content to Vertex Gemini
+    - Builds a PT/EN STRIDE prompt
+    - Sends multimodal (text + image) to Vertex Gemini
     - Returns the model's JSON or raw text if parsing fails
     """
     try:
-        # Build prompt (PT or EN)
+        # Build prompt
         prompt = create_threat_model_prompt(
-            tipo_aplicacao=tipo_aplicacao,
-            autenticacao=autenticacao,
-            acesso_internet=acesso_internet,
-            dados_sensiveis=dados_sensiveis,
-            descricao_aplicacao=descricao_aplicacao,
+            application_type=application_type,
+            authentication_methods=authentication_methods,
+            internet_exposed=internet_exposed,
+            sensitive_data=sensitive_data,
+            application_description=application_description,
             prompt_language=prompt_language,
         )
 
         # Read uploaded image
-        image_bytes = await imagem.read()
-        mime_type = imagem.content_type or "image/png"
+        image_bytes = await image.read()
+        mime_type = image.content_type or "image/png"
         if isinstance(image_bytes, bytearray):
             image_bytes = bytes(image_bytes)
         image_part = Part.from_data(mime_type=mime_type, data=image_bytes)
 
-        # Multimodal content for Gemini
+        # Multimodal content
         contents = [
             prompt,
             image_part,
